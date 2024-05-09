@@ -1,19 +1,20 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: vllm1
+  name: llm2
+  namespace: demo
   labels:
-    app: vllm1
+    app: llm2
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vllm1
+      app: llm2
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: vllm1
+        app: llm2
     spec:
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -24,10 +25,11 @@ spec:
         - resources:
             limits:
               cpu: "4"
-              memory: 12Gi
+              memory: 8Gi
               nvidia.com/gpu: "1"
             requests:
               cpu: "2"
+              memory: 6Gi
           readinessProbe:
             httpGet:
               path: /health
@@ -49,15 +51,18 @@ spec:
             successThreshold: 1
             failureThreshold: 3
           env:
-            - name: HUGGING_FACE_HUB_TOKEN
-              value: ""
-          args:
-            - "--model"
-            - openai-community/gpt2
-            - "--download-dir"
-            - /models-cache
-            - "--dtype"
-            - float16
+            - name: MODEL_ID
+              value: google/flan-t5-small
+            - name: MAX_INPUT_LENGTH
+              value: "416"
+            - name: MAX_TOTAL_TOKENS
+              value: "512"
+            - name: HUGGINGFACE_HUB_CACHE
+              value: /models-cache
+            - name: PORT
+              value: "3000"
+            - name: HOSTNAME
+              value: 0.0.0.0
           securityContext:
             capabilities:
               drop:
@@ -68,7 +73,7 @@ spec:
               type: RuntimeDefault
           ports:
             - name: http
-              containerPort: 8000
+              containerPort: 3000
               protocol: TCP
           imagePullPolicy: IfNotPresent
           startupProbe:
@@ -76,6 +81,7 @@ spec:
               path: /health
               port: http
               scheme: HTTP
+            initialDelaySeconds: 60
             timeoutSeconds: 1
             periodSeconds: 30
             successThreshold: 1
@@ -86,11 +92,11 @@ spec:
             - name: shm
               mountPath: /dev/shm
           terminationMessagePolicy: File
-          image: "quay.io/rh-aiservices-bu/vllm-openai-ubi9:0.4.0.post1"
+          image: "ghcr.io/huggingface/text-generation-inference:2.0"
       volumes:
         - name: models-cache
           persistentVolumeClaim:
-            claimName: vllm-models-cache
+            claimName: hftgi-models-cache
         - name: shm
           emptyDir:
             medium: Memory

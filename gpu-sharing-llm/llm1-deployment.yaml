@@ -1,19 +1,19 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: vllm2
+  name: llm1
   labels:
-    app: vllm2
+    app: llm1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vllm2
+      app: llm1
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: vllm2
+        app: llm1
     spec:
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -53,11 +53,11 @@ spec:
               value: ""
           args:
             - "--model"
-            - openai-community/gpt2
+            - TheBloke/zephyr-7B-beta-AWQ
             - "--download-dir"
             - /models-cache
-            - "--dtype"
-            - float16
+            - "--quantization"
+            - awq
           securityContext:
             capabilities:
               drop:

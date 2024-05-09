@@ -1,0 +1,97 @@
+apiVersion: nvidia.com/v1
+kind: ClusterPolicy
+metadata:
+  name: gpu-cluster-policy
+spec:
+  vgpuDeviceManager:
+    config:
+      default: default
+    enabled: true
+  migManager:
+    config:
+      default: all-disabled
+      name: default-mig-parted-config
+    enabled: true
+  operator:
+    defaultRuntime: crio
+    initContainer: {}
+    runtimeClass: nvidia
+    use_ocp_driver_toolkit: true
+  dcgm:
+    enabled: true
+  gfd:
+    enabled: true
+  dcgmExporter:
+    config:
+      name: ''
+    serviceMonitor:
+      enabled: true
+    enabled: true
+  cdi:
+    default: false
+    enabled: false
+  driver:
+    licensingConfig:
+      nlsEnabled: true
+      configMapName: ''
+    certConfig:
+      name: ''
+    kernelModuleConfig:
+      name: ''
+    upgradePolicy:
+      autoUpgrade: true
+      drain:
+        deleteEmptyDir: false
+        enable: false
+        force: false
+        timeoutSeconds: 300
+      maxParallelUpgrades: 1
+      maxUnavailable: 25%
+      podDeletion:
+        deleteEmptyDir: false
+        force: false
+        timeoutSeconds: 300
+      waitForCompletion:
+        timeoutSeconds: 0
+    repoConfig:
+      configMapName: ''
+    virtualTopology:
+      config: ''
+    enabled: true
+    useNvidiaDriverCRD: false
+    useOpenKernelModules: false
+  devicePlugin:
+    config:
+      name: ''
+      default: ''
+    enabled: true
+  kataManager:
+    config:
+      artifactsDir: /opt/nvidia-gpu-operator/artifacts/runtimeclasses
+  mig:
+    strategy: single
+  sandboxDevicePlugin:
+    enabled: true
+  validator:
+    plugin:
+      env:
+        - name: WITH_WORKLOAD
+          value: 'false'
+  nodeStatusExporter:
+    enabled: true
+  daemonsets:
+    rollingUpdate:
+      maxUnavailable: '1'
+    updateStrategy: RollingUpdate
+  sandboxWorkloads:
+    defaultWorkload: container
+    enabled: false
+  gds:
+    enabled: false
+  vgpuManager:
+    enabled: false
+  vfioManager:
+    enabled: true
+  toolkit:
+    installDir: /usr/local/nvidia
+    enabled: true

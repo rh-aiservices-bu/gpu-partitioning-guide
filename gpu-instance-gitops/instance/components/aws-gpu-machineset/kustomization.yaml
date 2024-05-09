@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+namespace: nvidia-gpu-operator
+
+resources:
+  # - ../../../../../../scripts/library
+  - job.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: job-aws-gpu-machineset
+    files:
+      - job.sh
+      # - ocp.sh
+      # kludge: refer to source
+      - https://raw.githubusercontent.com/codekow/demo-ai-gitops-catalog/main/scripts/library/ocp.sh
+      # - ../../../../../../scripts/library/ocp.sh
