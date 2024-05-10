@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: device-plugin-config
+data:
+  mps-sliced: |-
+    version: v1
+    sharing:
+      mps:
+        resources:
+        - name: nvidia.com/gpu
+          replicas: 2
