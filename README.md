@@ -12,6 +12,8 @@ Repository to demo GPU Sharing with Time Slicing, MPS, MIG and others with [Red 
 - **Fair Utilization**: This method ensures fair and efficient sharing of the GPU among multiple competing workloads.
 - **Multiple Users**: Particularly useful in environments where many users compete for limited GPU resources.
 
+If you want to know more check the [Time-Slicing in OpenShift](https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/time-slicing-gpus-in-openshift.html)
+
 ### 2. Multi-Instance GPU (MIG)
 [Multi-Instance GPU (MIG)](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html) enables a single physical GPU to be partitioned into several isolated instances, each with its own compute resources, memory, and performance profiles. Key benefits include:
 
@@ -30,7 +32,5 @@ If you want to know more check the [MIG GPU Operator in OpenShift](https://docs.
 - **Optimized Utilization**: Efficiently manages GPU resources across different applications.
 - **Seamless Context Switching**: Swiftly transitions between CUDA contexts to minimize overhead and maximize responsiveness.
 - **Maximized Throughput**: Ensures efficient allocation of GPU resources even when multiple workloads run concurrently.
-
-If you want to know more check the [MIG GPU Operator in OpenShift](https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/mig-ocp.html)
 
 These advanced resource management techniques ensure that GPUs are fully utilized in multi-application environments, providing organizations with optimal performance, flexibility, and efficiency.
