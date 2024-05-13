@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This component is designed to enable to enable MIG in mixed mode.  The mixed MIG strategy should be utilized when not all GPUs on a node have MIG enabled.
+This component is designed to enable to enable MIG in mixed mode.  The mixed MIG strategy should be utilized when **not** all GPUs on a node have MIG enabled.
 
 To learn more about MIG, please refer to the official [docs](
 https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html)
