@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This component is designed to enable to enable MIG in single mode.  The single MIG strategy should be utilized when  all GPUs on a node have MIG enabled.
+This component is designed to enable to enable MIG in single mode. The single MIG strategy should be utilized when all GPUs on a node have MIG enabled.
 
 To learn more about MIG, please refer to the official [docs](
 https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html)

@@ -19,7 +19,7 @@ resources:
   - ../../base
 
 components:
-  - ../../components/time-sliced
+  - ../../components/mps
 ```
 
 This component is intended to be used with additional configurations to set the number of replicas.
