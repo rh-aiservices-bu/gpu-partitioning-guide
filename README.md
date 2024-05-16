@@ -43,8 +43,6 @@ These advanced resource management techniques ensure that GPUs are fully utilize
 
 ## Pros and Cons of GPU Sharing Methods
 
-# Benefits vs Cons of NVIDIA GPU Sharing Strategies
-
 | Strategy           | Benefits                                                                                                           | Cons                                                                                                               |
 |--------------------|--------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
 | Time-slicing       | - Allows multiple workloads to share a GPU by interleaving execution.                                              | - No isolation between workloads sharing the same GPU, leading to potential crashes affecting all workloads.       |
