@@ -108,8 +108,8 @@ kubectl apply -k overlays/mps-4
 
 ## Other Interesting Links
 
-- [Docs - AWS GPU Instances](https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing)
 - [Docs - Nvidia GPU Operator on Openshift](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/openshift/contents.html)
 - [Blog - Red Hat Nvidia GPUs on OpenShift](https://cloud.redhat.com/blog/autoscaling-nvidia-gpus-on-red-hat-openshift)
 - [Blog - GPU Kubernetes Nvidia Device Plugin](https://superorbital.io/blog/gpu-kubernetes-nvidia-device-plugin/)
-- 
+- [Docs - AWS Recommended GPU Instances](https://docs.aws.amazon.com/dlami/latest/devguide/gpu.html)
+- [Docs - AWS GPU Instances](https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing)
