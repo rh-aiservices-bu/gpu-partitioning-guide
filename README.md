@@ -173,6 +173,13 @@ kubectl get node $NODE -o json | jq '.status.capacity'
 
 > In this example, the Worker NODE has 1 GPU (A10G) available.
 
+* Deploy the test deployment:
+
+```md
+kubectl create ns demo
+kubectl apply -k gpu-sharing-tests/overlays/default/
+```
+
 * Deploy the test pod to check the pods running on the Worker NODE (and the rest pending):
 
 ```md
