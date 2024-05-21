@@ -4,11 +4,11 @@ Repository to demo GPU Sharing with Time Slicing, MPS, MIG and others with [Red 
 
 Check also the [OpenShift GPU Sharing Methods Docs](https://developer.nvidia.com/blog/improving-gpu-utilization-in-kubernetes/) if you want to know more.
 
-## GPU Sharing Overview
+## 1. GPU Sharing Overview
 
 ![GPU Sharing Overview](assets/gpu-sharing-overview.png)
 
-### 1. Time-Slicing
+### 1.1. Time-Slicing
 [Time-slicing](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-sharing.html) is a GPU resource management technique where GPU resources are divided into time intervals or "slices" and allocated sequentially to different users or processes. Key features include:
 
 - **Sequential Allocation**: Each user or process gains access to the GPU for a specific duration known as a "time slice."
@@ -18,7 +18,7 @@ Check also the [OpenShift GPU Sharing Methods Docs](https://developer.nvidia.com
 
 If you want to know more check the [Time-Slicing in OpenShift docs](https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/time-slicing-gpus-in-openshift.html).
 
-### 2. Multi-Instance GPU (MIG)
+### 1.2 Multi-Instance GPU (MIG)
 [Multi-Instance GPU (MIG)](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html) enables a single physical GPU to be partitioned into several isolated instances, each with its own compute resources, memory, and performance profiles. Key benefits include:
 
 - **Predictable Performance**: Each instance has dedicated resources, offering predictable performance guarantees.
@@ -31,7 +31,7 @@ If you want to know more check the [Time-Slicing in OpenShift docs](https://docs
 
 If you want to know more check the [MIG GPU Operator in OpenShift Docs](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html).
 
-### 3. Multi-Process Service (MPS)
+### 1.3 Multi-Process Service (MPS)
 [Multi-Process Service (MPS)](https://docs.nvidia.com/deploy/mps/index.html) facilitates concurrent sharing of a single GPU among multiple CUDA applications. This feature allows for:
 
 - **Concurrent Execution**: Multiple CUDA contexts can share GPU resources simultaneously.
@@ -41,7 +41,7 @@ If you want to know more check the [MIG GPU Operator in OpenShift Docs](https://
 
 These advanced resource management techniques ensure that GPUs are fully utilized in multi-application environments, providing organizations with optimal performance, flexibility, and efficiency.
 
-## Pros and Cons of GPU Sharing Methods
+## 1.4 Pros and Cons of GPU Sharing Methods
 
 | Strategy           | Benefits                                                                                                           | Cons                                                                                                               |
 |--------------------|--------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
@@ -58,61 +58,191 @@ These advanced resource management techniques ensure that GPUs are fully utilize
 |                    | - Supported on almost every CUDA-compatible GPU.                                                                  | - May not be suitable for workloads requiring strict isolation.                                                    |
 |                    | - Suitable for efficiently sharing GPU resources without strict isolation requirements.                           | - Requires careful management to avoid resource contention and ensure optimal performance.                         |
 
-## Usage
+## 2. Requirements
+
+- [RHOAI Installed](https://access.redhat.com/documentation/en-us/red_hat_openshift_ai_self-managed)
+- [Nvidia GPU Operator Installed](https://docs.nvidia.com/datacenter/cloud-native/openshift/23.9.2/install-gpu-ocp.html)
+- [NFD Installed](https://docs.nvidia.com/datacenter/cloud-native/openshift/23.9.2/install-nfd.html#install-nfd)
+- [GPU Nodes with GPUs](../bootstrap/gpu-machineset.sh)
+
+## 3. Usage
 
 This repository contains a set of components that can be used to enable GPU sharing with Time-Slicing, MPS, MIG and others. The components can be added to a base by adding the `components` section to your overlay `kustomization.yaml` file:
 
-### [Time-Slicing](gpu-instance-gitops/instance/components/time-sliced/README.md)
+### 3.1 [Time-Slicing](gpu-sharing-instance/instance/components/time-sliced/README.md)
 
 * With 2 GPU replicas:
 
 ```yaml
-kubectl apply -k overlays/time-sliced-2
+kubectl apply -k gpu-sharing-instance/instance/overlays/time-sliced-2
 ```
 
 * With 4 GPU replicas:
 
 ```yaml
-kubectl apply -k overlays/time-sliced-2
+kubectl apply -k gpu-sharing-instance/instance/overlays/time-sliced-2
 ```
 
-### [MIG-Single](gpu-instance-gitops/instance/components/mig-single/README.md)
+### 3.2.1 [MIG-Single](gpu-sharing-instance/instance/components/mig-single/README.md)
 
 > The single MIG strategy should be utilized when all GPUs on a node have MIG enabled
 
 ```yaml
-kubectl apply -k overlays/mig-single
+kubectl apply -k gpu-sharing-instance/instance/overlays/mig-single
 ```
 
-### [MIG-Mixed](gpu-instance-gitops/instance/components/mig-mixed/README.md)
+### 3.2.2 [MIG-Mixed](gpu-sharing-instance/instance/components/mig-mixed/README.md)
 
 > The mixed MIG strategy should be utilized when **not** all GPUs on a node have MIG enabled
 
 ```yaml
-kubectl apply -k overlays/mig-mixed
+kubectl apply -k gpu-sharing-instance/instance/overlays/mig-mixed
 ```
 
-### [MPS](gpu-instance-gitops/instance/components/mps/README.md)
+### 3.3 [MPS](gpu-sharing-instance/instance/components/mps/README.md)
 
-> Combining MPS with MIG is not currently supported in the GPU operator.
+> Combining MPS with MIG is **not currently supported** in the GPU operator.
 
 * With 2 replicas:
 
 ```yaml
-kubectl apply -k overlays/mps-2
+kubectl apply -k gpu-sharing-instance/instance/overlays/mps-2
 ```
 
 * With 4 replicas:
 
 ```yaml
-kubectl apply -k overlays/mps-4
+kubectl apply -k gpu-sharing-instance/instance/overlays/mps-4
 ```
 
 NOTE: Despite the tests passing, *MPS isn't working correctly on OpenShift currently*, due to only one process per GPU can run at any time. RH and Nvidia engineers are working to fix this issue as soon as possible. 
 
-## Validate and Check GPU Sharing
+### 3.4 NO GPU Sharing - Default
 
-TBD
+To disable the GPU sharing, you can use the default overlay:
+
+```yaml
+kubectl apply -k gpu-sharing-instance/instance/overlays/mps-2
+```
+
+## 4. Validate and Check GPU Sharing
+
+### 4.1 Preparing the Environment
+
+* Select the GPU product that you're interested in:
+
+```md
+* NVIDIA Tesla T4 [16GiB vRAM] (label: Tesla-T4-SHARED)
+* NVIDIA A10G [24GiB vRAM] (label: NVIDIA-A10G-SHARED)
+* NVIDIA L4 [24GiB vRAM] (label: NVIDIA-L4G-SHARED)
+* NVIDIA A100 [40GiB vRAM] (label: NVIDIA-A100-SHARED)
+* NVIDIA H100 [80GiB vRAM] (label: NVIDIA-H100-SHARED)
+* INTEL DL1 [80GiB vRAM] (label: INTEL-DL1-SHARED)
+```
+
+* Check the GPU resources available:
+
+> In this example I'm using the NVIDIA A10G GPU (g5.2xlarge), but you can change it to the GPU that you're interested in.
+
+```md
+GPU_LABEL="NVIDIA-A10G-SHARED"
+kubectl get node --selector=nvidia.com/gpu.product=$GPU_LABEL -o json | jq '.items[0].status.capacity'
+```
+
+* Define the Worker NODE that you're interested in testing GPU Sharing:
+
+```md
+NODE=$(kubectl get nodes --selector=nvidia.com/gpu.product=$GPU_LABEL -o jsonpath='{.items[0].metadata.name}')
+```
+
+* Check the capacity of your Worker NODE with GPU without GPU Sharing enabled:
+
+```md
+kubectl get node $NODE -o json | jq '.status.capacity'
+...
+{
+  "cpu": "8",
+  "ephemeral-storage": "125238252Ki",
+  "hugepages-1Gi": "0",
+  "hugepages-2Mi": "0",
+  "memory": "32506764Ki",
+  **"nvidia.com/gpu": "1"**,
+  "pods": "250"
+}
+```
+
+> In this example, the Worker NODE has 1 GPU (A10G) available.
+
+* Deploy the test pod to check the pods running on the Worker NODE (and the rest pending):
+
+```md
+kubectl get pod -n demo
+NAME                                  READY   STATUS    RESTARTS   AGE
+nvidia-plugin-test-7d75856bc5-94b9n   0/1     Pending   0          59s
+nvidia-plugin-test-7d75856bc5-shlwb   1/1     Running   0          59s
+```
+
+> The pod `nvidia-plugin-test-7d75856bc5-94b9n` is pending because the GPU Sharing is not enabled.
+
+### 4.2 Apply the GPU Sharing Strategy and Check if it's working correctly
+
+* Apply the GPU Sharing strategy that you're interested in (Time-Slicing, MIG-Single, MIG-Mixed, MPS or Default):
+
+* Check that the GPU Sharing strategy was applied correctly, and all the pods in Nvidia GPU Operator Namespace are running:
+
+```md
+kubectl get pod -n nvidia-gpu-operator
+```
+
+> The gpu-feature-discovery and the nvidia-device-plugin-daemonset pods should be restarted with the new GPU Sharing configuration.
+
+* Check the capacity of your Worker NODE with GPU Sharing enabled:
+
+```md
+kubectl get node $NODE -o json | jq '.status.capacity'
+{
+  "cpu": "8",
+  "ephemeral-storage": "125238252Ki",
+  "hugepages-1Gi": "0",
+  "hugepages-2Mi": "0",
+  "memory": "32506764Ki",
+  **"nvidia.com/gpu": "2"**,
+  "pods": "250"
+}
+```
+
+Now you have 2 GPUs available on your Worker NODE with GPU Sharing enabled.
+
+* Check the Metadata Labels to check the GPU Replicas and the GPU Sharing Strategy:
+
+```md
+kubectl get node $NODE -o json | jq '.metadata.labels' | grep gpu
+  "node-role.kubernetes.io/gpu": "",
+  "nvidia.com/gpu-driver-upgrade-state": "upgrade-done",
+  "nvidia.com/gpu.compute.major": "8",
+  "nvidia.com/gpu.compute.minor": "6",
+  **"nvidia.com/gpu.count": "1"**,
+  "nvidia.com/gpu.deploy.container-toolkit": "true",
+  "nvidia.com/gpu.deploy.dcgm": "true",
+  "nvidia.com/gpu.deploy.dcgm-exporter": "true",
+  "nvidia.com/gpu.deploy.device-plugin": "true",
+  "nvidia.com/gpu.deploy.driver": "true",
+  "nvidia.com/gpu.deploy.gpu-feature-discovery": "true",
+  "nvidia.com/gpu.deploy.node-status-exporter": "true",
+  "nvidia.com/gpu.deploy.nvsm": "",
+  "nvidia.com/gpu.deploy.operator-validator": "true",
+  "nvidia.com/gpu.family": "ampere",
+  "nvidia.com/gpu.machine": "g5.2xlarge",
+  "nvidia.com/gpu.memory": "23028",
+  "nvidia.com/gpu.present": "true",
+  "nvidia.com/gpu.product": "NVIDIA-A10G-SHARED",
+  **"nvidia.com/gpu.replicas": "2"**,
+  **"nvidia.com/gpu.sharing-strategy": "time-slicing"**,
+```
+
+> For MPS and MIG will be different labels like in "gpu.sharing-strategy".
+
+
 
 ## Other Interesting Links
 
@@ -121,3 +251,4 @@ TBD
 - [Blog - GPU Kubernetes Nvidia Device Plugin](https://superorbital.io/blog/gpu-kubernetes-nvidia-device-plugin/)
 - [Docs - AWS Recommended GPU Instances](https://docs.aws.amazon.com/dlami/latest/devguide/gpu.html)
 - [Docs - AWS GPU Instances](https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing)
+- [Video - Optimizing GPU Utilization: Understanding MIG and MPS](https://www.nvidia.com/en-us/on-demand/session/gtcspring22-s41793/)
