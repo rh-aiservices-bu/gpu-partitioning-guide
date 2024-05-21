@@ -127,6 +127,8 @@ kubectl apply -k gpu-sharing-instance/instance/overlays/mps-2
 
 ## 4. Validate and Check GPU Sharing
 
+In this process, we are testing and validating GPU sharing on a Kubernetes cluster. We will explore the behavior of the system under different GPU sharing strategies, including time-slicing, MIG (Multi-Instance GPU), and MPS (Multi-Process Service). This ensures that we understand how to effectively utilize GPUs for our workloads.
+
 ### 4.1 Preparing the Environment
 
 * Select the GPU product that you're interested in:
@@ -144,20 +146,20 @@ kubectl apply -k gpu-sharing-instance/instance/overlays/mps-2
 
 > In this example I'm using the NVIDIA A10G GPU (g5.2xlarge), but you can change it to the GPU that you're interested in.
 
-```md
+```bash
 GPU_LABEL="NVIDIA-A10G-SHARED"
 kubectl get node --selector=nvidia.com/gpu.product=$GPU_LABEL -o json | jq '.items[0].status.capacity'
 ```
 
 * Define the Worker NODE that you're interested in testing GPU Sharing:
 
-```md
+```bash
 NODE=$(kubectl get nodes --selector=nvidia.com/gpu.product=$GPU_LABEL -o jsonpath='{.items[0].metadata.name}')
 ```
 
 * Check the capacity of your Worker NODE with GPU without GPU Sharing enabled:
 
-```md
+```bash
 kubectl get node $NODE -o json | jq '.status.capacity'
 ...
 {
@@ -166,46 +168,58 @@ kubectl get node $NODE -o json | jq '.status.capacity'
   "hugepages-1Gi": "0",
   "hugepages-2Mi": "0",
   "memory": "32506764Ki",
-  **"nvidia.com/gpu": "1"**,
+  "nvidia.com/gpu": "1", # <--- Number of GPUs available (without GPU sharing)
   "pods": "250"
 }
 ```
 
 > In this example, the Worker NODE has 1 GPU (A10G) available.
 
-* Deploy the test deployment:
+### Request GPUs with Test Apps without GPU Sharing Enabled
 
-```md
+We will deploy a test application (nvidia-plugin-test) that requests GPU resources to see the behavior of the system when GPU sharing is not enabled. This initial step sets the baseline for how our Kubernetes cluster handles GPU requests before applying any GPU sharing strategy.
+
+* Deploy the nvidia-plugin-test deployment with 2 replicas to request 2 GPUs each on the Worker NODE:
+
+```bash
 kubectl create ns demo
 kubectl apply -k gpu-sharing-tests/overlays/default/
 ```
 
 * Deploy the test pod to check the pods running on the Worker NODE (and the rest pending):
 
-```md
+```bash
 kubectl get pod -n demo
 NAME                                  READY   STATUS    RESTARTS   AGE
 nvidia-plugin-test-7d75856bc5-94b9n   0/1     Pending   0          59s
 nvidia-plugin-test-7d75856bc5-shlwb   1/1     Running   0          59s
 ```
 
-> The pod `nvidia-plugin-test-7d75856bc5-94b9n` is pending because the GPU Sharing is not enabled.
+> The pod `nvidia-plugin-test-7d75856bc5-94b9n` is pending because the GPU Sharing is not enabled, and is requesting 2 full GPUs once we have only one available.
 
-### 4.2 Apply the GPU Sharing Strategy and Check if it's working correctly
+This initial test highlights the limitations of our current setup without GPU sharing, where only one pod can utilize the available GPU at a time. In the following steps, we will enable GPU sharing and test various strategies to allow multiple pods to share the GPU resources effectively.
 
-* Apply the GPU Sharing strategy that you're interested in (Time-Slicing, MIG-Single, MIG-Mixed, MPS or Default):
+### 4.3 Apply the GPU Sharing Strategy and Check if it's working correctly
+
+* Apply the GPU Sharing strategy that we're interested in (Time-Slicing, MIG-Single, MIG-Mixed, MPS or Default).
+
+> In this example we will use the time-slicing strategy with 2 replicas, but we can change it to the strategy that we're interested.
+
+```bash
+kubectl apply -k gpu-sharing-instance/instance/overlays/time-sliced-2
+```
 
 * Check that the GPU Sharing strategy was applied correctly, and all the pods in Nvidia GPU Operator Namespace are running:
 
-```md
+```bash
 kubectl get pod -n nvidia-gpu-operator
 ```
 
-> The gpu-feature-discovery and the nvidia-device-plugin-daemonset pods should be restarted with the new GPU Sharing configuration.
+> The gpu-feature-discovery and the nvidia-device-plugin-daemonset pods should be restarted automatically with the new GPU Sharing configuration.
 
-* Check the capacity of your Worker NODE with GPU Sharing enabled:
+* Check the capacity of our Worker NODE with GPU Sharing enabled:
 
-```md
+```bash
 kubectl get node $NODE -o json | jq '.status.capacity'
 {
   "cpu": "8",
@@ -213,22 +227,21 @@ kubectl get node $NODE -o json | jq '.status.capacity'
   "hugepages-1Gi": "0",
   "hugepages-2Mi": "0",
   "memory": "32506764Ki",
-  **"nvidia.com/gpu": "2"**,
+  "nvidia.com/gpu": "2", # <--- Number of GPUs available (with GPU Sharing)
   "pods": "250"
 }
 ```
-
-Now you have 2 GPUs available on your Worker NODE with GPU Sharing enabled.
+Now we have 2 GPUs available on your Worker NODE with GPU Sharing enabled.
 
 * Check the Metadata Labels to check the GPU Replicas and the GPU Sharing Strategy:
 
-```md
+```bash
 kubectl get node $NODE -o json | jq '.metadata.labels' | grep gpu
   "node-role.kubernetes.io/gpu": "",
   "nvidia.com/gpu-driver-upgrade-state": "upgrade-done",
   "nvidia.com/gpu.compute.major": "8",
   "nvidia.com/gpu.compute.minor": "6",
-  **"nvidia.com/gpu.count": "1"**,
+  "nvidia.com/gpu.count": "1", # <--- Number of "physically" GPUs available
   "nvidia.com/gpu.deploy.container-toolkit": "true",
   "nvidia.com/gpu.deploy.dcgm": "true",
   "nvidia.com/gpu.deploy.dcgm-exporter": "true",
@@ -238,18 +251,59 @@ kubectl get node $NODE -o json | jq '.metadata.labels' | grep gpu
   "nvidia.com/gpu.deploy.node-status-exporter": "true",
   "nvidia.com/gpu.deploy.nvsm": "",
   "nvidia.com/gpu.deploy.operator-validator": "true",
-  "nvidia.com/gpu.family": "ampere",
-  "nvidia.com/gpu.machine": "g5.2xlarge",
-  "nvidia.com/gpu.memory": "23028",
-  "nvidia.com/gpu.present": "true",
-  "nvidia.com/gpu.product": "NVIDIA-A10G-SHARED",
-  **"nvidia.com/gpu.replicas": "2"**,
-  **"nvidia.com/gpu.sharing-strategy": "time-slicing"**,
+  "nvidia.com/gpu.family": "ampere", # <--- GPU Family
+  "nvidia.com/gpu.machine": "g5.2xlarge", # <--- Machine Type
+  "nvidia.com/gpu.memory": "23028", # <--- vRAM GPU Memory
+  "nvidia.com/gpu.present": "true", 
+  "nvidia.com/gpu.product": "NVIDIA-A10G-SHARED", # <--- GPU Product
+  "nvidia.com/gpu.replicas": "2", # <--- Number of GPU Replicas available (with GPU Sharing)
+  "nvidia.com/gpu.sharing-strategy": "time-slicing", # <--- GPU Sharing Strategy
 ```
 
-> For MPS and MIG will be different labels like in "gpu.sharing-strategy".
+> For MPS and MIG will be different labels like in "gpu.sharing-strategy" among others.
 
+* Check the pods running on the Worker NODE that were requesting GPU resources:
 
+```bash
+kubectl get pod -n demo -o wide
+NAME                                  READY   STATUS    RESTARTS   AGE    IP              NODE                                       NOMINATED NODE   READINESS GATES
+nvidia-plugin-test-7d75856bc5-94b9n   1/1     Running   0          153m   10.129.15.195   ip-10-0-15-13.us-west-2.compute.internal   <none>           <none>
+nvidia-plugin-test-7d75856bc5-shlwb   1/1     Running   0          153m   10.129.15.192   ip-10-0-15-13.us-west-2.compute.internal   <none>           <none>
+```
+
+Now that we have GPU Sharing enabled, both pods are running on the Worker NODE, sharing the GPU resources effectively.
+
+* Check the nvidia-smi command to check the GPU utilization (and the process running on that GPU) on the Worker NODE:
+
+```bash
+POD_NAME=$(kubectl get pod -n nvidia-gpu-operator -l app.kubernetes.io/component=nvidia-driver -o jsonpath="{.items[0].metadata.name}")
+kubectl exec -n nvidia-gpu-operator $POD_NAME -- nvidia-smi
+     
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.54.15              Driver Version: 550.54.15      CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A10G                    On  |   00000000:00:1E.0 Off |                    0 |
+|  0%   54C    P0            257W /  300W |    1305MiB /  23028MiB |    100%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A    592286      C   /usr/bin/dcgmproftester12                     646MiB |
+|    0   N/A  N/A    592591      C   /usr/bin/dcgmproftester12                     646MiB |
++-----------------------------------------------------------------------------------------+
+```
+
+The GPU is being used by two processes requesting GPUs, one for each pod running on the Worker NODE. Even though there's just one physical GPU available, with GPU sharing enabled, we have two GPU replicas available for each nvidia-device-test process pod replica.
+
+> Depending on the strategy, we might not guarantee isolation between the pods running on the same GPU. It's important to understand the strategy you are using, as one pod might consume all the GPU resources, causing the other pod to fail to run correctly due to an out-of-memory (OOM) condition.
 
 ## Other Interesting Links
 
