@@ -1,0 +1,51 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: nvidia-plugin-test
+  labels:
+    app: nvidia-plugin-test
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nvidia-plugin-test
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nvidia-plugin-test
+    spec:
+      containers:
+        - resources:
+            limits:
+              nvidia.com/gpu: "1"
+          terminationMessagePath: /dev/termination-log
+          name: dcgmproftester12
+          command:
+            - /bin/sh
+            - "-c"
+          securityContext:
+            capabilities:
+              add:
+                - SYS_ADMIN
+          imagePullPolicy: IfNotPresent
+          terminationMessagePolicy: File
+          image: "nvcr.io/nvidia/cloud-native/dcgm:3.3.3-1-ubi9"
+          args:
+            - while true; do /usr/bin/dcgmproftester12 --no-dcgm-validation -t 1004 -d 300; sleep 30; done
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

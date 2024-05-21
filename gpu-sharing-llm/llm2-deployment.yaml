@@ -2,11 +2,10 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: llm2
-  namespace: demo
   labels:
     app: llm2
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: llm2

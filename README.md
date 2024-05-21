@@ -94,6 +94,8 @@ kubectl apply -k overlays/mig-mixed
 
 ### [MPS](gpu-instance-gitops/instance/components/mps/README.md)
 
+> Combining MPS with MIG is not currently supported in the GPU operator.
+
 * With 2 replicas:
 
 ```yaml
@@ -105,6 +107,12 @@ kubectl apply -k overlays/mps-2
 ```yaml
 kubectl apply -k overlays/mps-4
 ```
+
+NOTE: Despite the tests passing, *MPS isn't working correctly on OpenShift currently*, due to only one process per GPU can run at any time. RH and Nvidia engineers are working to fix this issue as soon as possible. 
+
+## Validate and Check GPU Sharing
+
+TBD
 
 ## Other Interesting Links
 

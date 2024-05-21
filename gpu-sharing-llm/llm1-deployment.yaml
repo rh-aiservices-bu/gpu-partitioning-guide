@@ -5,7 +5,7 @@ metadata:
   labels:
     app: llm1
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: llm1
@@ -86,7 +86,7 @@ spec:
             - name: shm
               mountPath: /dev/shm
           terminationMessagePolicy: File
-          image: "quay.io/bbrowning/vllm-openai-ubi9:0.4.0.post1-1"
+          image: "quay.io/rh-aiservices-bu/vllm-openai-ubi9:0.4.2"
       volumes:
         - name: models-cache
           persistentVolumeClaim:
