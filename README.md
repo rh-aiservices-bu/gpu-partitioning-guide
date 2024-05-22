@@ -19,7 +19,8 @@ Check also the [OpenShift GPU Sharing Methods Docs](https://developer.nvidia.com
   - [NO GPU Sharing - Default](#34-no-gpu-sharing---default)
 - [Validate and Check GPU Sharing](#4-validate-and-check-gpu-sharing)
 - [Testing with LLMs](#5-testing-with-llms)
-- [Other Interesting Links](#other-interesting-links)
+- [Install Nvidia GPU Operator from Staging / Development](#6-install-nvidia-gpu-operator-from-staging--development)
+- [Other Interesting Links](#7-other-interesting-links)
 
 ## 1. GPU Sharing Overview
 
@@ -334,7 +335,11 @@ If you want to know more about MPS and MIG, you can check the specific checks fo
 
 If you want to test the GPU Sharing with LLMs, you can check the [GPU Sharing with LLMs](gpu-sharing-instance/instance/components/llm/README.md) document that describes demos with LLMs and GPU Sharing.
 
-## Other Interesting Links
+# 6. Install Nvidia GPU Operator from Staging / Development
+
+If you want to install the Nvidia GPU Operator from Staging / Development to test the last features not yet in the Stable channel, you can check the [Installing Nvidia GPU Operator from Staging / Development](assets/installing-nvidia-gpu-dev.md) document that describes how to install the Nvidia GPU Operator from Staging / Development.
+
+## 7. Other Interesting Links
 
 - [Docs - Nvidia GPU Operator on Openshift](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/openshift/contents.html)
 - [Blog - Red Hat Nvidia GPUs on OpenShift](https://cloud.redhat.com/blog/autoscaling-nvidia-gpus-on-red-hat-openshift)
