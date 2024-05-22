@@ -21,3 +21,7 @@ resources:
 components:
   - ../../components/mig-mixed
 ```
+
+## Specific Checks and Configurations
+
+TBD

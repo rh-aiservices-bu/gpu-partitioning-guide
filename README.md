@@ -4,6 +4,23 @@ Repository to demo GPU Sharing with Time Slicing, MPS, MIG and others with [Red 
 
 Check also the [OpenShift GPU Sharing Methods Docs](https://developer.nvidia.com/blog/improving-gpu-utilization-in-kubernetes/) if you want to know more.
 
+## Table of Contents
+- [GPU Sharing Overview](#1-gpu-sharing-overview)
+  - [Time-Slicing](#11-time-slicing)
+  - [Multi-Instance GPU (MIG)](#12-multi-instance-gpu-mig)
+  - [Multi-Process Service (MPS)](#13-multi-process-service-mps)
+- [Pros and Cons of GPU Sharing Methods](#14-pros-and-cons-of-gpu-sharing-methods)
+- [Requirements](#2-requirements)
+- [Usage](#3-usage)
+  - [Time-Slicing](#31-time-slicing)
+  - [MIG-Single](#321-mig-single)
+  - [MIG-Mixed](#322-mig-mixed)
+  - [MPS](#33-mps)
+  - [NO GPU Sharing - Default](#34-no-gpu-sharing---default)
+- [Validate and Check GPU Sharing](#4-validate-and-check-gpu-sharing)
+- [Testing with LLMs](#5-testing-with-llms)
+- [Other Interesting Links](#other-interesting-links)
+
 ## 1. GPU Sharing Overview
 
 ![GPU Sharing Overview](assets/gpu-sharing-overview.png)
@@ -304,6 +321,18 @@ kubectl exec -n nvidia-gpu-operator $POD_NAME -- nvidia-smi
 The GPU is being used by two processes requesting GPUs, one for each pod running on the Worker NODE. Even though there's just one physical GPU available, with GPU sharing enabled, we have two GPU replicas available for each nvidia-device-test process pod replica.
 
 > Depending on the strategy, we might not guarantee isolation between the pods running on the same GPU. It's important to understand the strategy you are using, as one pod might consume all the GPU resources, causing the other pod to fail to run correctly due to an out-of-memory (OOM) condition.
+
+## 4.4 MPS and MIG specific checks
+
+If you want to know more about MPS and MIG, you can check the specific checks for each strategy:
+
+* [MPS](gpu-sharing-instance/instance/components/mps/README.md#specific-checks-and-configurations)
+* [MIG-Mixed](gpu-sharing-instance/instance/components/mps/README.md#specific-checks-and-configurations)
+* [MIG-Single](gpu-sharing-instance/instance/components/mps/README.md#specific-checks-and-configurations)
+
+# 5. Testing with LLMs
+
+If you want to test the GPU Sharing with LLMs, you can check the [GPU Sharing with LLMs](gpu-sharing-instance/instance/components/llm/README.md) document that describes demos with LLMs and GPU Sharing.
 
 ## Other Interesting Links
 

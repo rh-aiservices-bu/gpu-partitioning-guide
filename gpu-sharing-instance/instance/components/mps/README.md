@@ -25,3 +25,7 @@ components:
 This component is intended to be used with additional configurations to set the number of replicas.
 
 Please refer to [mps-2](../mps-2) and [mps-4](../mps-4) for complete implementations of the time slicing configuration.
+
+## Specific Checks and Configurations
+
+TBD

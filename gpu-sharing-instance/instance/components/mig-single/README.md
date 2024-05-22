@@ -21,3 +21,7 @@ resources:
 components:
   - ../../components/mig-single
 ```
+
+## Specific Checks and Configurations
+
+TBD
