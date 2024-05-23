@@ -1,5 +1,7 @@
 # mig-single
 
+![mig-single](../../../../assets/gpu-mig2.png)
+
 ## Purpose
 
 This component is designed to enable to enable MIG in single mode. The single MIG strategy should be utilized when all GPUs on a node have MIG enabled.
