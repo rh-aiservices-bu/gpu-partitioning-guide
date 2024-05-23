@@ -1,30 +1,57 @@
-# GPU Sharing with Time Slicing, MPS, MIG and others
+# GPU Partitioning with Time Slicing, MPS, MIG and others
 
-Repository to demo GPU Sharing with Time Slicing, MPS, MIG and others with [Red Hat OpenShift AI](https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-ai) and [NVIDIA GPU Operator](https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/index.html).
+Repository to demo GPU Partitioning with Time Slicing, MPS, MIG and others with [Red Hat OpenShift AI](https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-ai) and [NVIDIA GPU Operator](https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/index.html).
 
-Check also the [OpenShift GPU Sharing Methods Docs](https://developer.nvidia.com/blog/improving-gpu-utilization-in-kubernetes/) if you want to know more.
+Check also the [OpenShift GPU Partitioning Methods Docs](https://developer.nvidia.com/blog/improving-gpu-utilization-in-kubernetes/) if you want to know more.
 
 ## Table of Contents
-- [GPU Sharing Overview](#1-gpu-sharing-overview)
+- [GPU Partitioning Overview](#1-gpu-partitioning-overview)
   - [Time-Slicing](#11-time-slicing)
   - [Multi-Instance GPU (MIG)](#12-multi-instance-gpu-mig)
   - [Multi-Process Service (MPS)](#13-multi-process-service-mps)
-- [Pros and Cons of GPU Sharing Methods](#14-pros-and-cons-of-gpu-sharing-methods)
+- [Pros and Cons of GPU Partitioning Methods](#14-pros-and-cons-of-gpu-partitioning-methods)
 - [Requirements](#2-requirements)
 - [Usage](#3-usage)
   - [Time-Slicing](#31-time-slicing)
   - [MIG-Single](#321-mig-single)
   - [MIG-Mixed](#322-mig-mixed)
   - [MPS](#33-mps)
-  - [NO GPU Sharing - Default](#34-no-gpu-sharing---default)
-- [Validate and Check GPU Sharing](#4-validate-and-check-gpu-sharing)
+  - [NO GPU Partitioning - Default](#34-no-gpu-partitioning---default)
+- [Validate and Check GPU Partitioning](#4-validate-and-check-gpu-partitioning)
 - [Testing with LLMs](#5-testing-with-llms)
 - [Install Nvidia GPU Operator from Staging / Development](#6-install-nvidia-gpu-operator-from-staging--development)
 - [Other Interesting Links](#7-other-interesting-links)
 
-## 1. GPU Sharing Overview
+## 0. Why GPU Partitioning?
 
-![GPU Sharing Overview](assets/gpu-sharing-overview.png)
+GPU partitioning can help optimize GPU resource utilization across your clusters, though it might not be necessary if you have a single GPU with sufficient memory for your specific needs. 
+
+By partitioning GPUs, we can allocate the right-sized GPU resources to each workload, ensuring that each application gets exactly what it needs to perform efficiently. This not only maximizes the use of available GPU resources but also reduces idle time and operational expenses.
+
+Partitioning allows for flexibility in resource management, enabling multiple applications to share a single GPU or dividing a large GPU into smaller, dedicated units for different tasks. This approach enhances overall system performance, provides better fault isolation, and improves quality of service (QoS) across different applications. Consequently, GPU partitioning is a crucial strategy for achieving scalable, efficient, and cost-effective GPU utilization in modern computational environments.
+
+![GPU Partitioning Use Cases](./assets/gpu-arch.svg)
+
+The diagram illustrates three different possible scenarios for GPU partitioning, reviewing specific use cases for optimizing GPU utilization within a OpenShift cluster.
+
+##### Big GPU to Smaller GPUs
+- **Scenario**: A large GPU is divided into smaller GPUs.
+- **Use Case**: Useful for situations where different applications or workloads require different levels of computational power. By partitioning a large GPU into smaller GPUs, it is possible to allocate the right amount of GPU resources to each workload. Beneficial for applications that do not require the full power of a large GPU and can operate efficiently on a smaller partition.
+
+##### Medium GPU to GPU Partitions
+- **Scenario**: A medium-sized GPU is divided into smaller GPU partitions.
+- **Use Case**: Optimal for workloads that can benefit from sharing a medium-sized GPU. The partitions allow multiple tasks to run concurrently, leveraging the GPU's capabilities without requiring dedicated access. This is useful for workloads that need GPU acceleration but have varying levels of GPU demands.
+
+##### Medium GPU to Shared GPUs
+- **Scenario**: A medium-sized GPU is shared among multiple tasks, with each task getting a portion of the GPU.
+- **Use Case**: Designed for workloads that need simultaneous access to GPU resources but do not require strict isolation or dedicated partitions. Sharing a medium-sized GPU can improve overall utilization and reduce idle GPU time, making it suitable for applications with sporadic or variable GPU usage.
+
+These partitioning strategies help optimize GPU resource allocation, enhance utilization, and reduce operational costs in data centers by ensuring that GPU resources are effectively matched to the needs of different workloads.
+
+
+## 1. GPU Partitioning Overview
+
+![GPU Partitioning Overview](assets/gpu-sharing-overview.png)
 
 ### 1.1. Time-Slicing
 [Time-slicing](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-sharing.html) is a GPU resource management technique where GPU resources are divided into time intervals or "slices" and allocated sequentially to different users or processes. Key features include:
@@ -135,17 +162,17 @@ kubectl apply -k gpu-sharing-instance/instance/overlays/mps-4
 
 NOTE: Despite the tests passing, *MPS isn't working correctly on OpenShift currently*, due to only one process per GPU can run at any time. RH and Nvidia engineers are working to fix this issue as soon as possible. 
 
-### 3.4 NO GPU Sharing - Default
+### 3.4 NO GPU Partitioning - Default
 
-To disable the GPU sharing, you can use the default overlay:
+To disable the GPU Partitioning, you can use the default overlay:
 
 ```yaml
 kubectl apply -k gpu-sharing-instance/instance/overlays/mps-2
 ```
 
-## 4. Validate and Check GPU Sharing
+## 4. Validate and Check GPU Partitioning
 
-In this process, we are testing and validating GPU sharing on a Kubernetes cluster. We will explore the behavior of the system under different GPU sharing strategies, including time-slicing, MIG (Multi-Instance GPU), and MPS (Multi-Process Service). This ensures that we understand how to effectively utilize GPUs for our workloads.
+In this process, we are testing and validating GPU Partitioning on a Kubernetes cluster. We will explore the behavior of the system under different GPU Partitioning strategies, including time-slicing, MIG (Multi-Instance GPU), and MPS (Multi-Process Service). This ensures that we understand how to effectively utilize GPUs for our workloads.
 
 ### 4.1 Preparing the Environment
 
@@ -169,13 +196,13 @@ GPU_LABEL="NVIDIA-A10G-SHARED"
 kubectl get node --selector=nvidia.com/gpu.product=$GPU_LABEL -o json | jq '.items[0].status.capacity'
 ```
 
-* Define the Worker NODE that you're interested in testing GPU Sharing:
+* Define the Worker NODE that you're interested in testing GPU Partitioning:
 
 ```bash
 NODE=$(kubectl get nodes --selector=nvidia.com/gpu.product=$GPU_LABEL -o jsonpath='{.items[0].metadata.name}')
 ```
 
-* Check the capacity of your Worker NODE with GPU without GPU Sharing enabled:
+* Check the capacity of your Worker NODE with GPU without GPU Partitioning enabled:
 
 ```bash
 kubectl get node $NODE -o json | jq '.status.capacity'
@@ -186,16 +213,16 @@ kubectl get node $NODE -o json | jq '.status.capacity'
   "hugepages-1Gi": "0",
   "hugepages-2Mi": "0",
   "memory": "32506764Ki",
-  "nvidia.com/gpu": "1", # <--- Number of GPUs available (without GPU sharing)
+  "nvidia.com/gpu": "1", # <--- Number of GPUs available (without GPU Partitioning)
   "pods": "250"
 }
 ```
 
 > In this example, the Worker NODE has 1 GPU (A10G) available.
 
-### Request GPUs with Test Apps without GPU Sharing Enabled
+### Request GPUs with Test Apps without GPU Partitioning Enabled
 
-We will deploy a test application (nvidia-plugin-test) that requests GPU resources to see the behavior of the system when GPU sharing is not enabled. This initial step sets the baseline for how our Kubernetes cluster handles GPU requests before applying any GPU sharing strategy.
+We will deploy a test application (nvidia-plugin-test) that requests GPU resources to see the behavior of the system when GPU Partitioning is not enabled. This initial step sets the baseline for how our Kubernetes cluster handles GPU requests before applying any GPU Partitioning strategy.
 
 * Deploy the nvidia-plugin-test deployment with 2 replicas to request 2 GPUs each on the Worker NODE:
 
@@ -213,13 +240,13 @@ nvidia-plugin-test-7d75856bc5-94b9n   0/1     Pending   0          59s
 nvidia-plugin-test-7d75856bc5-shlwb   1/1     Running   0          59s
 ```
 
-> The pod `nvidia-plugin-test-7d75856bc5-94b9n` is pending because the GPU Sharing is not enabled, and is requesting 2 full GPUs once we have only one available.
+> The pod `nvidia-plugin-test-7d75856bc5-94b9n` is pending because the GPU Partitioning is not enabled, and is requesting 2 full GPUs once we have only one available.
 
-This initial test highlights the limitations of our current setup without GPU sharing, where only one pod can utilize the available GPU at a time. In the following steps, we will enable GPU sharing and test various strategies to allow multiple pods to share the GPU resources effectively.
+This initial test highlights the limitations of our current setup without GPU Partitioning, where only one pod can utilize the available GPU at a time. In the following steps, we will enable GPU Partitioning and test various strategies to allow multiple pods to share the GPU resources effectively.
 
-### 4.3 Apply the GPU Sharing Strategy and Check if it's working correctly
+### 4.3 Apply the GPU Partitioning Strategy and Check if it's working correctly
 
-* Apply the GPU Sharing strategy that we're interested in (Time-Slicing, MIG-Single, MIG-Mixed, MPS or Default).
+* Apply the GPU Partitioning strategy that we're interested in (Time-Slicing, MIG-Single, MIG-Mixed, MPS or Default).
 
 > In this example we will use the time-slicing strategy with 2 replicas, but we can change it to the strategy that we're interested.
 
@@ -227,15 +254,15 @@ This initial test highlights the limitations of our current setup without GPU sh
 kubectl apply -k gpu-sharing-instance/instance/overlays/time-sliced-2
 ```
 
-* Check that the GPU Sharing strategy was applied correctly, and all the pods in Nvidia GPU Operator Namespace are running:
+* Check that the GPU Partitioning strategy was applied correctly, and all the pods in Nvidia GPU Operator Namespace are running:
 
 ```bash
 kubectl get pod -n nvidia-gpu-operator
 ```
 
-> The gpu-feature-discovery and the nvidia-device-plugin-daemonset pods should be restarted automatically with the new GPU Sharing configuration.
+> The gpu-feature-discovery and the nvidia-device-plugin-daemonset pods should be restarted automatically with the new GPU Partitioning configuration.
 
-* Check the capacity of our Worker NODE with GPU Sharing enabled:
+* Check the capacity of our Worker NODE with GPU Partitioning enabled:
 
 ```bash
 kubectl get node $NODE -o json | jq '.status.capacity'
@@ -245,13 +272,13 @@ kubectl get node $NODE -o json | jq '.status.capacity'
   "hugepages-1Gi": "0",
   "hugepages-2Mi": "0",
   "memory": "32506764Ki",
-  "nvidia.com/gpu": "2", # <--- Number of GPUs available (with GPU Sharing)
+  "nvidia.com/gpu": "2", # <--- Number of GPUs available (with GPU Partitioning)
   "pods": "250"
 }
 ```
-Now we have 2 GPUs available on your Worker NODE with GPU Sharing enabled.
+Now we have 2 GPUs available on your Worker NODE with GPU Partitioning enabled.
 
-* Check the Metadata Labels to check the GPU Replicas and the GPU Sharing Strategy:
+* Check the Metadata Labels to check the GPU Replicas and the GPU Partitioning Strategy:
 
 ```bash
 kubectl get node $NODE -o json | jq '.metadata.labels' | grep gpu
@@ -274,8 +301,8 @@ kubectl get node $NODE -o json | jq '.metadata.labels' | grep gpu
   "nvidia.com/gpu.memory": "23028", # <--- vRAM GPU Memory
   "nvidia.com/gpu.present": "true", 
   "nvidia.com/gpu.product": "NVIDIA-A10G-SHARED", # <--- GPU Product
-  "nvidia.com/gpu.replicas": "2", # <--- Number of GPU Replicas available (with GPU Sharing)
-  "nvidia.com/gpu.sharing-strategy": "time-slicing", # <--- GPU Sharing Strategy
+  "nvidia.com/gpu.replicas": "2", # <--- Number of GPU Replicas available (with GPU Partitioning)
+  "nvidia.com/gpu.sharing-strategy": "time-slicing", # <--- GPU Partitioning Strategy
 ```
 
 > For MPS and MIG will be different labels like in "gpu.sharing-strategy" among others.
@@ -289,7 +316,7 @@ nvidia-plugin-test-7d75856bc5-94b9n   1/1     Running   0          153m   10.129
 nvidia-plugin-test-7d75856bc5-shlwb   1/1     Running   0          153m   10.129.15.192   ip-10-0-15-13.us-west-2.compute.internal   <none>           <none>
 ```
 
-Now that we have GPU Sharing enabled, both pods are running on the Worker NODE, sharing the GPU resources effectively.
+Now that we have GPU Partitioning enabled, both pods are running on the Worker NODE, sharing the GPU resources effectively.
 
 * Check the nvidia-smi command to check the GPU utilization (and the process running on that GPU) on the Worker NODE:
 
@@ -319,7 +346,7 @@ kubectl exec -n nvidia-gpu-operator $POD_NAME -- nvidia-smi
 +-----------------------------------------------------------------------------------------+
 ```
 
-The GPU is being used by two processes requesting GPUs, one for each pod running on the Worker NODE. Even though there's just one physical GPU available, with GPU sharing enabled, we have two GPU replicas available for each nvidia-device-test process pod replica.
+The GPU is being used by two processes requesting GPUs, one for each pod running on the Worker NODE. Even though there's just one physical GPU available, with GPU Partitioning enabled, we have two GPU replicas available for each nvidia-device-test process pod replica.
 
 > Depending on the strategy, we might not guarantee isolation between the pods running on the same GPU. It's important to understand the strategy you are using, as one pod might consume all the GPU resources, causing the other pod to fail to run correctly due to an out-of-memory (OOM) condition.
 
@@ -333,7 +360,7 @@ If you want to know more about MPS and MIG, you can check the specific checks fo
 
 # 5. Testing with LLMs
 
-If you want to test the GPU Sharing with LLMs, you can check the [GPU Sharing with LLMs](gpu-sharing-instance/instance/components/llm/README.md) document that describes demos with LLMs and GPU Sharing.
+If you want to test the GPU Partitioning with LLMs, you can check the [GPU Partitioning with LLMs](gpu-sharing-instance/instance/components/llm/README.md) document that describes demos with LLMs and GPU Partitioning.
 
 # 6. Install Nvidia GPU Operator from Staging / Development
 
@@ -346,4 +373,5 @@ If you want to install the Nvidia GPU Operator from Staging / Development to tes
 - [Blog - GPU Kubernetes Nvidia Device Plugin](https://superorbital.io/blog/gpu-kubernetes-nvidia-device-plugin/)
 - [Docs - AWS Recommended GPU Instances](https://docs.aws.amazon.com/dlami/latest/devguide/gpu.html)
 - [Docs - AWS GPU Instances](https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing)
+* [Blog - AWS GPU for Deep Learning](https://towardsdatascience.com/choosing-the-right-gpu-for-deep-learning-on-aws-d69c157d8c86)
 - [Video - Optimizing GPU Utilization: Understanding MIG and MPS](https://www.nvidia.com/en-us/on-demand/session/gtcspring22-s41793/)
