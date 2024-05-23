@@ -24,7 +24,7 @@ Check also the [OpenShift GPU Partitioning Methods Docs](https://developer.nvidi
 
 ## 0. Why GPU Partitioning?
 
-GPU partitioning is essential for optimizing the utilization of GPU resources in our OpenShift AI clusters. 
+GPU partitioning can help optimize GPU resource utilization across your clusters, though it might not be necessary if you have a single GPU with sufficient memory for your specific needs. 
 
 By partitioning GPUs, we can allocate the right-sized GPU resources to each workload, ensuring that each application gets exactly what it needs to perform efficiently. This not only maximizes the use of available GPU resources but also reduces idle time and operational expenses.
 
@@ -373,4 +373,5 @@ If you want to install the Nvidia GPU Operator from Staging / Development to tes
 - [Blog - GPU Kubernetes Nvidia Device Plugin](https://superorbital.io/blog/gpu-kubernetes-nvidia-device-plugin/)
 - [Docs - AWS Recommended GPU Instances](https://docs.aws.amazon.com/dlami/latest/devguide/gpu.html)
 - [Docs - AWS GPU Instances](https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing)
+* [Blog - AWS GPU for Deep Learning](https://towardsdatascience.com/choosing-the-right-gpu-for-deep-learning-on-aws-d69c157d8c86)
 - [Video - Optimizing GPU Utilization: Understanding MIG and MPS](https://www.nvidia.com/en-us/on-demand/session/gtcspring22-s41793/)
