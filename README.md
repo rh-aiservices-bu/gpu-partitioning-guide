@@ -34,15 +34,15 @@ Partitioning allows for flexibility in resource management, enabling multiple ap
 
 The diagram illustrates three different possible scenarios for GPU partitioning, reviewing specific use cases for optimizing GPU utilization within a OpenShift cluster.
 
-### 1. Big GPU to Smaller GPUs
+##### Big GPU to Smaller GPUs
 - **Scenario**: A large GPU is divided into smaller GPUs.
 - **Use Case**: Useful for situations where different applications or workloads require different levels of computational power. By partitioning a large GPU into smaller GPUs, it is possible to allocate the right amount of GPU resources to each workload. Beneficial for applications that do not require the full power of a large GPU and can operate efficiently on a smaller partition.
 
-### 2. Medium GPU to GPU Partitions
+##### Medium GPU to GPU Partitions
 - **Scenario**: A medium-sized GPU is divided into smaller GPU partitions.
 - **Use Case**: Optimal for workloads that can benefit from sharing a medium-sized GPU. The partitions allow multiple tasks to run concurrently, leveraging the GPU's capabilities without requiring dedicated access. This is useful for workloads that need GPU acceleration but have varying levels of GPU demands.
 
-### 3. Medium GPU to Shared GPUs
+##### Medium GPU to Shared GPUs
 - **Scenario**: A medium-sized GPU is shared among multiple tasks, with each task getting a portion of the GPU.
 - **Use Case**: Designed for workloads that need simultaneous access to GPU resources but do not require strict isolation or dedicated partitions. Sharing a medium-sized GPU can improve overall utilization and reduce idle GPU time, making it suitable for applications with sporadic or variable GPU usage.
 
