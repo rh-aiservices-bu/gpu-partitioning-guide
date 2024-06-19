@@ -367,7 +367,7 @@ If you want to test the GPU Partitioning with LLMs, you can check the [GPU Parti
 If you want to install the Nvidia GPU Operator from Staging / Development to test the last features not yet in the Stable channel, you can check the [Installing Nvidia GPU Operator from Staging / Development](assets/installing-nvidia-gpu-dev.md) document that describes how to install the Nvidia GPU Operator from Staging / Development.
 
 ## 7. Other Interesting Links
-
+- [RHOAI Supported GPUs](https://access.redhat.com/documentation/en-us/red_hat_openshift_ai_self-managed/2.9/html/working_on_data_science_projects/working-with-accelerators_accelerators#overview-of-accelerators_accelerators)
 - [Docs - Nvidia GPU Operator on Openshift](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/openshift/contents.html)
 - [Blog - Red Hat Nvidia GPUs on OpenShift](https://cloud.redhat.com/blog/autoscaling-nvidia-gpus-on-red-hat-openshift)
 - [Blog - GPU Kubernetes Nvidia Device Plugin](https://superorbital.io/blog/gpu-kubernetes-nvidia-device-plugin/)
