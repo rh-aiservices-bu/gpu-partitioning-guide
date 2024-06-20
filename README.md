@@ -8,7 +8,7 @@ Check also the [OpenShift GPU Partitioning Methods Docs](https://developer.nvidi
 - [GPU Partitioning Overview](#1-gpu-partitioning-overview)
   - [Time-Slicing](#11-time-slicing)
   - [Multi-Instance GPU (MIG)](#12-multi-instance-gpu-mig)
-  - [Multi-Process Service (MPS)](#13-multi-process-service-mps)
+  - [Multi-Process Service (MPS) - Not yet available](#13-multi-process-service-mps)
 - [Pros and Cons of GPU Partitioning Methods](#14-pros-and-cons-of-gpu-partitioning-methods)
 - [Requirements](#2-requirements)
 - [Usage](#3-usage)
